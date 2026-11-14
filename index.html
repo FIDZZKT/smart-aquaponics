@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Aquaponics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* ══ DESIGN TOKENS ══ */
+        [data-theme="dark"] {
+            --bg:       #07120f;
+            --bg2:      #0d1c18;
+            --bg3:      #122018;
+            --ink:      #e8f4ec;
+            --sub:      rgba(232,244,236,.6);
+            --muted:    rgba(232,244,236,.35);
+            --faint:    rgba(232,244,236,.18);
+            --rule:     rgba(232,244,236,.08);
+            --teal:     #22d3ee;
+            --grn:      #34d399;
+            --amber:    #fbbf24;
+            --red:      #f87171;
+            --shadow:   0 1px 3px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.2);
+            --shadow-lg:0 2px 8px rgba(0,0,0,.5), 0 8px 32px rgba(0,0,0,.3);
+        }
+        [data-theme="light"] {
+            --bg:       #f4faf6;
+            --bg2:      #ffffff;
+            --bg3:      #edf5ef;
+            --ink:      #0d2016;
+            --sub:      rgba(13,32,22,.65);
+            --muted:    rgba(13,32,22,.45);
+            --faint:    rgba(13,32,22,.3);
+            --rule:     rgba(13,32,22,.1);
+            --teal:     #0891b2;
+            --grn:      #059669;
+            --amber:    #d97706;
+            --red:      #dc2626;
+            --shadow:   0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+            --shadow-lg:0 2px 8px rgba(0,0,0,.1), 0 8px 32px rgba(0,0,0,.08);
+        }
+
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        html { scroll-behavior:smooth; }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            -webkit-font-smoothing: antialiased;
+            font-size: 15px;
+            line-height: 1.6;
+            transition: background .3s, color .3s;
+        }
+
+        /* ── typography ── */
+        .display {
+            font-size: clamp(40px, 5.5vw, 80px);
+            font-weight: 700;
+            line-height: .92;
+            letter-spacing: -.03em;
+        }
+        .display i { font-style:italic; font-weight:400; color:var(--teal); }
+
+        .h2 {
+            font-size: clamp(24px, 3vw, 38px);
+            font-weight: 700;
+            line-height: 1.08;
+            letter-spacing: -.02em;
+        }
+
+        .eyebrow {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--teal);
+        }
+
+        /* ── layout ── */
+        .wrap { max-width: 1160px; margin: 0 auto; padding: 0 48px; }
+        @media (max-width: 768px) { .wrap { padding: 0 20px; } }
+
+        /* ── surfaces ── */
+        .card {
+            background: var(--bg2);
+            border: 1px solid var(--rule);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            transition: background .3s, border-color .3s, box-shadow .3s;
+        }
+        .card-hover { transition: transform .2s ease, box-shadow .2s ease, border-color .2s; }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-color: rgba(34,211,238,.22);
+        }
+        [data-theme="light"] .card-hover:hover { border-color: rgba(8,145,178,.22); }
+
+        /* ── nav ── */
+        #nav {
+            position: fixed; top: 0; inset-inline: 0; z-index: 50;
+            transition: background .2s, border-color .2s, backdrop-filter .2s;
+        }
+        #nav.solid {
+            background: rgba(7,18,15,.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--rule);
+        }
+        [data-theme="light"] #nav.solid {
+            background: rgba(244,250,246,.9);
+        }
+
+        .tab {
+            font-size: 14px; font-weight: 500;
+            color: var(--muted); background: none; border: none; cursor: pointer;
+            padding: 5px 0; position: relative; transition: color .15s;
+        }
+        .tab::after {
+            content: ''; position: absolute; bottom: 0; left: 0; right: 100%;
+            height: 1.5px; background: var(--teal);
+            transition: right .22s ease;
+        }
+        .tab:hover, .tab.on { color: var(--ink); }
+        .tab.on::after, .tab:hover::after { right: 0; }
+
+        /* ── theme toggle ── */
+        .theme-btn {
+            width: 36px; height: 36px; border-radius: 999px;
+            border: 1px solid var(--rule);
+            background: var(--bg3);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: background .2s, border-color .2s, transform .15s;
+            color: var(--muted);
+        }
+        .theme-btn:hover { background: var(--bg2); border-color: var(--teal); color: var(--teal); transform: rotate(15deg); }
+
+        /* ── status chip ── */
+        .chip {
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 5px 12px; border-radius: 999px;
+            border: 1px solid var(--rule);
+            background: var(--bg3);
+            font-size: 12px; font-weight: 500; color: var(--muted);
+            transition: background .3s, border-color .3s;
+        }
+        .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .dot-on  { background: var(--grn); animation: dp 2.5s ease-out infinite; }
+        .dot-off { background: var(--faint); }
+        @keyframes dp {
+            0%   { box-shadow: 0 0 0 0 rgba(52,211,153,.4); }
+            70%  { box-shadow: 0 0 0 5px rgba(52,211,153,0); }
+            100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+        }
+
+        /* ── buttons ── */
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 999px; font-size: 14px; font-weight: 500; border: 1px solid transparent; cursor: pointer; transition: all .15s; }
+        .btn-teal { background: var(--teal); color: #041c22; box-shadow: 0 2px 10px rgba(34,211,238,.2); }
+        .btn-teal:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(34,211,238,.3); }
+        .btn-teal:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+        .btn-line { background: var(--bg3); color: var(--muted); border-color: var(--rule); }
+        .btn-line:hover { color: var(--ink); border-color: rgba(34,211,238,.35); }
+        .btn-solid { background: var(--ink); color: var(--bg); font-weight: 600; }
+        .btn-solid:hover { filter: brightness(.92); transform: translateY(-1px); }
+        .btn-solid:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+        /* ── input ── */
+        .input {
+            background: var(--bg3); border: 1px solid var(--rule);
+            border-radius: 8px; color: var(--ink); font-size: 14px;
+            transition: border-color .15s, box-shadow .15s;
+        }
+        .input:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(34,211,238,.12); }
+        .input::placeholder { color: var(--faint); }
+
+        /* ── tags ── */
+        .tag { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 999px; border: 1px solid transparent; }
+        .tag-teal  { background: rgba(34,211,238,.1);  color: var(--teal); border-color: rgba(34,211,238,.2); }
+        .tag-grn   { background: rgba(52,211,153,.1);  color: var(--grn);  border-color: rgba(52,211,153,.2); }
+        .tag-amber { background: rgba(251,191,36,.1);  color: var(--amber); border-color: rgba(251,191,36,.2); }
+        .tag-muted { background: var(--bg3); color: var(--muted); border-color: var(--rule); }
+
+        /* ── pages ── */
+        .page { display: none; }
+        .page.on { display: block; animation: pIn .3s ease-out; }
+        @keyframes pIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:none; } }
+
+        /* ── reveal ── */
+        .reveal { opacity: 0; transform: translateY(12px); transition: opacity .6s ease, transform .6s ease; }
+        .reveal.in { opacity: 1; transform: none; }
+
+        /* ── modal ── */
+        #settingsModal .panel { animation: mIn .22s cubic-bezier(.34,1.4,.64,1); }
+        @keyframes mIn { from { opacity:0; transform:translateY(10px) scale(.97); } to { opacity:1; transform:none; } }
+
+        /* ── alert ── */
+        #alertBanner { animation: sDown .2s ease-out; }
+        @keyframes sDown { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
+
+        /* ── scrollbar ── */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 2px; }
+
+        /* ── project image ── */
+        .img-wrap { position:relative; overflow:hidden; border-radius:10px; }
+        .img-wrap img {
+            width:100%; height:100%; display:block;
+            object-fit:contain; object-position:center;
+            transition: transform .65s cubic-bezier(.22,1,.36,1), filter .4s ease;
+            filter: brightness(.93) saturate(.9);
+        }
+        .img-wrap:hover img { transform:scale(1.04); filter:brightness(1.04) saturate(1.08); }
+        .img-overlay {
+            position:absolute; inset:0;
+            background:linear-gradient(135deg,rgba(34,211,238,.07),rgba(52,211,153,.05));
+            opacity:0; transition:opacity .4s; pointer-events:none;
+        }
+        .img-wrap:hover .img-overlay { opacity:1; }
+        .img-scanline {
+            position:absolute; top:0; left:0; width:0; height:2px;
+            background:linear-gradient(90deg,var(--teal),transparent);
+            transition:width .5s cubic-bezier(.22,1,.36,1); pointer-events:none;
+        }
+        .img-wrap:hover .img-scanline { width:55%; }
+
+        /* ── hover rows ── */
+        .hrow { border-top:1px solid var(--rule); display:flex; align-items:flex-start; gap:24px; padding:22px 0; transition:background .15s, padding-left .15s; }
+        .hrow:hover { background:rgba(34,211,238,.03); padding-left:8px; }
+        .hrow:last-child { border-bottom:1px solid var(--rule); }
+        .hrow-num { font-size:11px; font-weight:600; color:var(--teal); min-width:28px; padding-top:3px; letter-spacing:.04em; }
+        .hrow-title { font-size:15px; font-weight:600; margin-bottom:5px; }
+        .hrow-body  { font-size:13px; color:var(--sub); line-height:1.65; }
+
+        /* ── spec list ── */
+        .spec { display:flex; align-items:flex-start; gap:12px; padding:16px 0; border-top:1px solid var(--rule); }
+        .spec:last-child { border-bottom:1px solid var(--rule); }
+        .spec-k { font-size:12px; color:var(--muted); min-width:140px; padding-top:1px; font-weight:500; }
+
+        /* ── gauge card ── */
+        .gauge-card {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 28px 20px 24px;
+        }
+        .gauge-title {
+            font-size: 11px; font-weight: 600;
+            letter-spacing: .08em; text-transform: uppercase;
+            color: var(--muted); width: 100%; margin-bottom: 20px;
+        }
+        .gauge-svg-wrap { width: 100%; max-width: 148px; }
+        .gauge-num-row {
+            display: flex; align-items: baseline; justify-content: center;
+            gap: 4px; margin-top: 12px;
+        }
+        .gauge-num  { font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; color: var(--ink); }
+        .gauge-unit { font-size: 14px; color: var(--muted); font-weight: 500; }
+        .gauge-range {
+            display: flex; justify-content: space-between;
+            width: 100%; max-width: 148px; margin-top: 8px;
+            font-size: 11px; color: var(--faint);
+        }
+
+        /* ── rule ── */
+        hr.rule { border: none; border-top: 1px solid var(--rule); }
+    </style>
+</head>
+<body>
+
+<!-- ══ NAVBAR ══ -->
+<nav id="nav" class="py-4">
+    <div class="wrap flex items-center justify-between">
+
+        <a href="#" onclick="showPage('landing');return false;" class="flex items-center gap-3">
+            <div style="width:32px;height:32px;border-radius:8px;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2);display:flex;align-items:center;justify-content:center">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                     stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2.5C8 7.5 6.5 11 6.5 14a5.5 5.5 0 0 0 11 0c0-3-1.5-6.5-5.5-11.5z"/>
+                </svg>
+            </div>
+            <span style="font-size:15px;font-weight:700;letter-spacing:-.01em">Smart Aquaponics</span>
+        </a>
+
+        <div class="hidden sm:flex items-center gap-8">
+            <button class="tab on" id="tab-landing"   onclick="showPage('landing')">Beranda</button>
+            <button class="tab"    id="tab-dashboard" onclick="showPage('dashboard')">Dashboard</button>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <div id="connectionStatus" class="chip hidden sm:inline-flex">
+                <span class="dot dot-off" id="statusDot"></span>
+                <span id="statusText">Offline</span>
+            </div>
+
+            <!-- Theme toggle -->
+            <button class="theme-btn" id="themeBtn" title="Toggle dark/light mode">
+                <i data-lucide="sun" width="16" height="16" id="themeIconSun" class="hidden"></i>
+                <i data-lucide="moon" width="16" height="16" id="themeIconMoon"></i>
+            </button>
+
+            <button id="settingsBtn" class="btn btn-line" style="padding:7px 14px;font-size:13px">
+                <i data-lucide="settings" width="13" height="13"></i>
+                <span class="hidden sm:inline">Settings</span>
+            </button>
+            <button class="sm:hidden btn btn-line" style="padding:7px 10px" onclick="toggleMobileTab()">
+                <i data-lucide="layout-dashboard" width="14" height="14"></i>
+            </button>
+        </div>
+    </div>
+</nav>
+
+
+<!-- ══════════════════════════════════
+     LANDING PAGE
+══════════════════════════════════ -->
+<div id="page-landing" class="page on">
+
+    <!-- ── HERO ── -->
+    <section style="padding:90px 0 100px">
+        <div class="wrap">
+            <div class="eyebrow mb-8">IoT Monitoring — ESP32 · Blynk Cloud · DHT11</div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-14 items-start">
+
+                <!-- kiri -->
+                <div>
+                    <h1 class="display mb-8">
+                        Monitoring<br>aquaponik<br><i>real-time.</i>
+                    </h1>
+                    <p style="font-size:16px;color:var(--sub);line-height:1.75;margin-bottom:32px;max-width:380px">
+                        Pantau suhu, kelembapan, kondisi tanah, dan kontrol
+                        pemberi makan ikan langsung dari browser.
+                        Update otomatis setiap 3 detik via Blynk Cloud.
+                    </p>
+                    <div class="flex flex-wrap gap-3 mb-14">
+                        <button onclick="showPage('dashboard')" class="btn btn-teal">
+                            <i data-lucide="layout-dashboard" width="15" height="15"></i>
+                            Buka Dashboard
+                        </button>
+                        <button id="heroSettingsBtn" class="btn btn-line">
+                            <i data-lucide="key-round" width="15" height="15"></i>
+                            Konfigurasi
+                        </button>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--rule)">
+                        <div style="padding:18px 0 0">
+                            <p style="font-size:28px;font-weight:700;line-height:1">3s</p>
+                            <p style="font-size:12px;color:var(--muted);margin-top:5px">Interval update</p>
+                        </div>
+                        <div style="padding:18px 24px 0;border-left:1px solid var(--rule)">
+                            <p style="font-size:28px;font-weight:700;line-height:1">4</p>
+                            <p style="font-size:12px;color:var(--muted);margin-top:5px">Sensor aktif</p>
+                        </div>
+                        <div style="padding:18px 24px 0;border-left:1px solid var(--rule)">
+                            <p style="font-size:28px;font-weight:700;line-height:1">ESP32</p>
+                            <p style="font-size:12px;color:var(--muted);margin-top:5px">Hardware</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- kanan: foto -->
+                <div class="reveal" style="position:sticky;top:88px;align-self:start">
+                    <div class="img-wrap" style="aspect-ratio:4/3">
+                        <img src="./FOTO/FOTOKE1.jpeg"
+                             alt="Smart Aquaponics System — ESP32, DHT11, soil sensor, servo feeder"
+                             loading="eager">
+                        <div class="img-overlay"></div>
+                        <div class="img-scanline"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <hr class="rule">
+
+    <!-- ── HOW IT WORKS ── -->
+    <section style="padding:80px 0">
+        <div class="wrap">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-14 reveal">
+                <div class="lg:col-span-4">
+                    <div class="eyebrow mb-4">Cara Kerja</div>
+                    <h2 class="h2">Dari sensor<br>ke browser</h2>
+                </div>
+                <div class="lg:col-span-5 lg:col-start-7 flex items-end">
+                    <p style="font-size:14px;color:var(--sub);line-height:1.75">
+                        Alur data end-to-end dari sensor fisik ke dashboard web
+                        tanpa server tambahan.
+                    </p>
+                </div>
+            </div>
+            <div class="reveal" style="transition-delay:.08s">
+                <div class="hrow">
+                    <span class="hrow-num">01</span>
+                    <div>
+                        <p class="hrow-title">Baca Sensor</p>
+                        <p class="hrow-body">DHT11 baca suhu & kelembapan udara. Soil moisture baca nilai ADC setiap 3 detik. Servo standby.</p>
+                    </div>
+                </div>
+                <div class="hrow">
+                    <span class="hrow-num">02</span>
+                    <div>
+                        <p class="hrow-title">Proses ESP32</p>
+                        <p class="hrow-body">Konversi ADC ke persen, kirim ke Blynk Cloud via virtual pins V0–V5.</p>
+                    </div>
+                </div>
+                <div class="hrow">
+                    <span class="hrow-num">03</span>
+                    <div>
+                        <p class="hrow-title">Blynk REST API</p>
+                        <p class="hrow-body">Dashboard poll endpoint setiap 3 detik dan cek status hardware via <code style="font-size:12px;color:var(--teal);font-family:monospace">/isHardwareConnected</code>.</p>
+                    </div>
+                </div>
+                <div class="hrow">
+                    <span class="hrow-num">04</span>
+                    <div>
+                        <p class="hrow-title">Tampil & Kontrol</p>
+                        <p class="hrow-body">Gauge tampil real-time. Tombol pakan trigger servo 1 detik via V3.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <hr class="rule">
+
+    <!-- ── ABOUT ── -->
+    <section style="padding:80px 0">
+        <div class="wrap">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+                <div class="lg:col-span-5 reveal">
+                    <div class="eyebrow mb-4">Tentang Project</div>
+                    <h2 class="h2 mb-8">Smart<br>Aquaponics</h2>
+                    <p style="font-size:15px;color:var(--sub);line-height:1.8;margin-bottom:14px">
+                        Menggabungkan budidaya ikan <em>(aquaculture)</em> dan tanaman <em>(hydroponics)</em> dalam satu ekosistem. Air dari kolam ikan yang kaya nutrisi dialirkan ke media tanam, lalu kembali setelah diserap.
+                    </p>
+                    <p style="font-size:14px;color:var(--muted);line-height:1.75;margin-bottom:32px">
+                        Dashboard memantau kondisi lingkungan secara real-time via ESP32 ke Blynk Cloud, tampil di browser tanpa server tambahan.
+                    </p>
+                    <div>
+                        <div class="spec">
+                            <span class="spec-k">Pertanian Urban</span>
+                            <span style="font-size:13px;color:var(--sub)">Lahan terbatas, sayuran dan ikan dalam satu sistem.</span>
+                        </div>
+                        <div class="spec">
+                            <span class="spec-k">Edukasi & Riset</span>
+                            <span style="font-size:13px;color:var(--sub)">Belajar IoT, sensor, dan pertanian modern.</span>
+                        </div>
+                        <div class="spec">
+                            <span class="spec-k">Skala Komersial</span>
+                            <span style="font-size:13px;color:var(--sub)">Dari rumah hingga usaha produksi sayur dan ikan.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-6 lg:col-start-7 reveal" style="transition-delay:.1s">
+                    <div class="img-wrap mb-4" style="aspect-ratio:1/1">
+                        <img src="./FOTO/FOTOKE1.jpeg" alt="Hardware aquaponics system"
+                             style="object-position:top center">
+                        <div class="img-overlay"></div>
+                        <div class="img-scanline"></div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+                        <div style="padding:12px 16px;background:var(--bg3);border:1px solid var(--rule);border-radius:6px 6px 3px 3px">
+                            <p style="font-size:11px;color:var(--muted);margin-bottom:3px">Sensor Suhu & Udara</p>
+                            <p style="font-size:14px;font-weight:600">DHT11</p>
+                        </div>
+                        <div style="padding:12px 16px;background:var(--bg3);border:1px solid var(--rule);border-radius:6px 6px 3px 3px">
+                            <p style="font-size:11px;color:var(--muted);margin-bottom:3px">Sensor Tanah</p>
+                            <p style="font-size:14px;font-weight:600">Soil Moisture</p>
+                        </div>
+                        <div style="padding:12px 16px;background:var(--bg3);border:1px solid var(--rule);border-radius:3px 3px 6px 6px">
+                            <p style="font-size:11px;color:var(--muted);margin-bottom:3px">Mikrokontroler</p>
+                            <p style="font-size:14px;font-weight:600">ESP32</p>
+                        </div>
+                        <div style="padding:12px 16px;background:var(--bg3);border:1px solid var(--rule);border-radius:3px 3px 6px 6px">
+                            <p style="font-size:11px;color:var(--muted);margin-bottom:3px">Aktuator</p>
+                            <p style="font-size:14px;font-weight:600">Servo Motor</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <hr class="rule">
+
+    <!-- ── FOOTER ── -->
+    <footer style="padding:28px 0">
+        <div class="wrap flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                     stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2.5C8 7.5 6.5 11 6.5 14a5.5 5.5 0 0 0 11 0c0-3-1.5-6.5-5.5-11.5z"/>
+                </svg>
+                <span style="font-size:13px;font-weight:600">Smart Aquaponics</span>
+            </div>
+            <p style="font-size:12px;color:var(--muted)">ESP32 · Blynk Cloud · DHT11 · Soil Moisture · Servo</p>
+        </div>
+    </footer>
+
+</div><!-- /page-landing -->
+
+
+<!-- ══════════════════════════════════
+     DASHBOARD PAGE
+══════════════════════════════════ -->
+<div id="page-dashboard" class="page">
+    <div class="wrap" style="padding-top:88px;padding-bottom:80px">
+
+        <!-- header -->
+        <div class="flex items-end justify-between mb-8"
+             style="border-bottom:1px solid var(--rule);padding-bottom:20px">
+            <div>
+                <div class="eyebrow mb-2">Smart Aquaponics</div>
+                <h1 style="font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1">Dashboard</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <!-- mobile status -->
+                <div class="sm:hidden chip">
+                    <span class="dot dot-off" style="width:6px;height:6px" id="statusDotMobile"></span>
+                </div>
+                <div style="text-align:right">
+                    <p style="font-size:11px;color:var(--muted)">Last update</p>
+                    <p style="font-size:13px;font-weight:500;font-variant-numeric:tabular-nums" id="lastUpdate">—</p>
+                </div>
+                <span id="apiStatus"><span class="tag tag-muted">Idle</span></span>
+            </div>
+        </div>
+
+        <!-- alert -->
+        <div id="alertBanner" class="hidden mb-6">
+            <div style="border:1px solid rgba(251,191,36,.22);border-left:3px solid var(--amber);
+                        background:rgba(251,191,36,.05);border-radius:8px;
+                        padding:14px 18px;display:flex;align-items:center;gap:12px">
+                <i data-lucide="alert-triangle" width="16" height="16" style="color:var(--amber);flex-shrink:0"></i>
+                <p style="font-size:14px;line-height:1.5" id="alertMessage"></p>
+                <button onclick="document.getElementById('alertBanner').classList.add('hidden')"
+                        style="margin-left:auto;color:var(--muted);flex-shrink:0">
+                    <i data-lucide="x" width="14" height="14"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ── 3 gauge cards ── -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">
+
+            <div class="card card-hover gauge-card">
+                <p class="gauge-title">Suhu</p>
+                <div class="gauge-svg-wrap">
+                    <svg viewBox="0 0 120 70" style="width:100%;display:block">
+                        <path d="M10,65 A55,55 0 0,1 110,65"
+                              stroke="var(--rule)" stroke-width="9" fill="none" stroke-linecap="round"
+                              style="filter:drop-shadow(0 0 2px rgba(0,0,0,.3))"/>
+                        <path id="gaugeTemp" d="M10,65 A55,55 0 0,1 110,65"
+                              stroke="var(--red)" stroke-width="9" fill="none" stroke-linecap="round"
+                              stroke-dasharray="172" stroke-dashoffset="172"
+                              style="transition:stroke-dashoffset .9s cubic-bezier(.4,0,.2,1);
+                                     filter:drop-shadow(0 0 4px rgba(248,113,113,.4))"/>
+                    </svg>
+                </div>
+                <div class="gauge-num-row">
+                    <span class="gauge-num" id="temperature">—</span>
+                    <span class="gauge-unit">°C</span>
+                </div>
+                <div class="gauge-range"><span>0</span><span>100</span></div>
+            </div>
+
+            <div class="card card-hover gauge-card">
+                <p class="gauge-title">Kelembapan Tanah</p>
+                <div class="gauge-svg-wrap">
+                    <svg viewBox="0 0 120 70" style="width:100%;display:block">
+                        <path d="M10,65 A55,55 0 0,1 110,65"
+                              stroke="var(--rule)" stroke-width="9" fill="none" stroke-linecap="round"/>
+                        <path id="gaugeSoil" d="M10,65 A55,55 0 0,1 110,65"
+                              stroke="var(--grn)" stroke-width="9" fill="none" stroke-linecap="round"
+                              stroke-dasharray="172" stroke-dashoffset="172"
+                              style="transition:stroke-dashoffset .9s cubic-bezier(.4,0,.2,1);
+                                     filter:drop-shadow(0 0 4px rgba(52,211,153,.4))"/>
+                    </svg>
+                </div>
+                <div class="gauge-num-row">
+                    <span class="gauge-num" id="soilMoisture">—</span>
+                    <span class="gauge-unit">%</span>
+                </div>
+                <div class="gauge-range"><span>0</span><span>100</span></div>
+            </div>
+
+            <div class="card card-hover gauge-card">
+                <p class="gauge-title">Kelembapan Udara</p>
+                <div class="gauge-svg-wrap">
+                    <svg viewBox="0 0 120 70" style="width:100%;display:block">
+                        <path d="M10,65 A55,55 0 0,1 110,65"
+                              stroke="var(--rule)" stroke-width="9" fill="none" stroke-linecap="round"/>
+                        <path id="gaugeHumid" d="M10,65 A55,55 0 0,1 110,65"
+                              stroke="var(--teal)" stroke-width="9" fill="none" stroke-linecap="round"
+                              stroke-dasharray="172" stroke-dashoffset="172"
+                              style="transition:stroke-dashoffset .9s cubic-bezier(.4,0,.2,1);
+                                     filter:drop-shadow(0 0 4px rgba(34,211,238,.4))"/>
+                    </svg>
+                </div>
+                <div class="gauge-num-row">
+                    <span class="gauge-num" id="airHumidity">—</span>
+                    <span class="gauge-unit">%</span>
+                </div>
+                <div class="gauge-range"><span>0</span><span>100</span></div>
+            </div>
+        </div>
+
+        <!-- ── status + feed ── -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+
+            <div class="card card-hover" style="padding:28px">
+                <p style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+                           color:var(--muted);margin-bottom:16px">Status Tanah</p>
+                <div style="display:flex;align-items:center;gap:14px">
+                    <span style="font-size:40px;font-weight:700;letter-spacing:-.025em;line-height:1"
+                          id="soilStatus">—</span>
+                    <div id="soilStatusBadge" class="tag tag-muted">
+                        <span class="dot dot-off" style="width:6px;height:6px"></span>Waiting
+                    </div>
+                </div>
+            </div>
+
+            <div class="card card-hover" style="padding:28px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                    <p style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Tombol Pakan</p>
+                    <span class="tag tag-teal">V3</span>
+                </div>
+                <button id="feedBtn" class="btn btn-solid"
+                        style="width:100%;justify-content:center;border-radius:10px;margin-bottom:14px">
+                    <i data-lucide="zap" width="15" height="15"></i>
+                    <span id="feedBtnText">Trigger Feed</span>
+                </button>
+                <p style="font-size:12px;color:var(--muted);text-align:center">
+                    Last fed: <span style="color:var(--sub);font-variant-numeric:tabular-nums" id="lastFeedTime">Never</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- ── system info ── -->
+        <div class="card" style="padding:20px 24px">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0">
+                <div style="padding:4px 20px 4px 0;border-right:1px solid var(--rule)">
+                    <p style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:500">Connection</p>
+                    <p style="font-size:14px;font-weight:600" id="sysConnection">—</p>
+                </div>
+                <div style="padding:4px 20px;border-right:1px solid var(--rule)">
+                    <p style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:500">Poll Interval</p>
+                    <p style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">3000 ms</p>
+                </div>
+                <div style="padding:4px 20px;border-right:1px solid var(--rule)">
+                    <p style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:500">Platform</p>
+                    <p style="font-size:14px;font-weight:600">Blynk Cloud</p>
+                </div>
+                <div style="padding:4px 0 4px 20px">
+                    <p style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:500">Syslog</p>
+                    <p style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums" id="sysLastUpdate">—</p>
+                </div>
+            </div>
+            <div class="hidden"><div id="sysConnectionBar"></div></div>
+        </div>
+
+    </div>
+</div><!-- /page-dashboard -->
+
+
+<!-- ── MODAL ── -->
+<div id="settingsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4"
+     style="background:rgba(0,0,0,.65);backdrop-filter:blur(10px)">
+    <div id="modalOverlay" class="absolute inset-0"></div>
+    <div class="panel relative z-10 w-full max-w-sm card overflow-hidden">
+        <div style="padding:20px 24px;border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:10px">
+                <i data-lucide="settings" width="17" height="17" style="color:var(--teal)"></i>
+                <span style="font-size:15px;font-weight:600">API Settings</span>
+            </div>
+            <button id="closeModal" style="color:var(--muted)" class="theme-btn">
+                <i data-lucide="x" width="15" height="15"></i>
+            </button>
+        </div>
+        <div style="padding:24px;display:flex;flex-direction:column;gap:16px">
+            <div>
+                <label style="font-size:12px;font-weight:600;color:var(--sub);display:block;margin-bottom:8px">Auth Token</label>
+                <input type="text" id="authTokenInput" placeholder="Blynk auth token"
+                       class="input" style="width:100%;padding:10px 14px">
+                <p style="font-size:11px;color:var(--muted);margin-top:7px">Stored locally. Default token dari ESP32 sudah terisi.</p>
+            </div>
+            <div style="background:var(--bg3);border:1px solid var(--rule);border-radius:8px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px">
+                <i data-lucide="info" width="14" height="14" style="color:var(--teal);margin-top:2px;flex-shrink:0"></i>
+                <p style="font-size:12px;color:var(--sub);line-height:1.6">Token dari Blynk Console &rarr; Device Info.</p>
+            </div>
+        </div>
+        <div style="padding:16px 24px;border-top:1px solid var(--rule);display:flex;gap:10px">
+            <button id="cancelBtn" class="btn btn-line" style="flex:1;justify-content:center;border-radius:10px">Cancel</button>
+            <button id="saveTokenBtn" class="btn btn-teal" style="flex:1;justify-content:center;border-radius:10px">
+                <i data-lucide="check" width="14" height="14"></i> Save Token
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2"></div>
+
+<!-- scripts -->
+<script src="./public/js/config.js"></script>
+<script src="./public/js/api.js"></script>
+<script src="./public/js/ui.js"></script>
+<script src="./public/js/app.js"></script>
+
+<script>
+lucide.createIcons();
+
+/* ── theme ── */
+(function(){
+    const saved = localStorage.getItem('sa-theme') || 'dark';
+    setTheme(saved, false);
+})();
+
+function setTheme(t, animate) {
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem('sa-theme', t);
+    const sun  = document.getElementById('themeIconSun');
+    const moon = document.getElementById('themeIconMoon');
+    if (t === 'dark') {
+        sun.classList.remove('hidden');
+        moon.classList.add('hidden');
+    } else {
+        sun.classList.add('hidden');
+        moon.classList.remove('hidden');
+    }
+}
+
+document.getElementById('themeBtn').addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    setTheme(cur === 'dark' ? 'light' : 'dark', true);
+});
+
+/* ── navbar scroll ── */
+window.addEventListener('scroll', () => {
+    document.getElementById('nav').classList.toggle('solid', window.scrollY > 30);
+});
+
+/* ── reveal ── */
+const rObs = new IntersectionObserver(es => {
+    es.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: .1 });
+document.querySelectorAll('.reveal').forEach(el => rObs.observe(el));
+
+/* ── SPA ── */
+function showPage(n) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+    document.getElementById('page-' + n).classList.add('on');
+    const t = document.getElementById('tab-' + n);
+    if (t) t.classList.add('on');
+    window.scrollTo({ top:0, behavior:'smooth' });
+    lucide.createIcons();
+    if (n === 'dashboard')
+        document.querySelectorAll('#page-dashboard .reveal').forEach(el => el.classList.add('in'));
+}
+
+function toggleMobileTab() {
+    const isL = document.getElementById('page-landing').classList.contains('on');
+    showPage(isL ? 'dashboard' : 'landing');
+}
+
+/* ── toast ── */
+window.showToast = function(msg, type) {
+    const c = document.getElementById('toast-container');
+    if (!c) return;
+    const col = { success:'var(--grn)', error:'var(--red)', warning:'var(--amber)', info:'var(--sub)' };
+    const t = document.createElement('div');
+    t.style.cssText = `
+        background:var(--bg2); border:1px solid var(--rule);
+        color:${col[type]||col.info};
+        padding:11px 16px; border-radius:10px;
+        font-size:13px; font-weight:500; max-width:300px;
+        opacity:0; transform:translateY(6px); transition:all .2s ease;
+        box-shadow:var(--shadow-lg); font-family:inherit;
+    `;
+    t.textContent = msg;
+    c.appendChild(t);
+    requestAnimationFrame(() => { t.style.opacity='1'; t.style.transform='none'; });
+    setTimeout(() => { t.style.opacity='0'; t.style.transform='translateY(6px)';
+        setTimeout(() => t.remove(), 200); }, 3200);
+};
+
+/* ── modal ── */
+function openModal() {
+    const tk = typeof getAuthToken === 'function' ? getAuthToken() : null;
+    const inp = document.getElementById('authTokenInput');
+    if (tk && inp) inp.value = tk;
+    document.getElementById('settingsModal').classList.remove('hidden');
+    lucide.createIcons();
+    if (inp) setTimeout(() => inp.focus(), 80);
+}
+function closeModal() {
+    document.getElementById('settingsModal').classList.add('hidden');
+    const inp = document.getElementById('authTokenInput');
+    if (inp) inp.value = '';
+}
+function saveToken() {
+    const inp = document.getElementById('authTokenInput');
+    if (!inp) return;
+    const tk = inp.value.trim();
+    if (!tk) { window.showToast('Token tidak boleh kosong', 'warning'); return; }
+    if (tk.length < 20) { window.showToast('Token minimal 20 karakter', 'error'); return; }
+    if (typeof saveAuthToken === 'function') saveAuthToken(tk);
+    closeModal();
+    window.showToast('Token tersimpan — menghubungkan…', 'success');
+    if (typeof app !== 'undefined' && app.restart) app.restart();
+}
+
+document.getElementById('settingsBtn').addEventListener('click', openModal);
+document.getElementById('heroSettingsBtn').addEventListener('click', openModal);
+document.getElementById('closeModal').addEventListener('click', closeModal);
+document.getElementById('cancelBtn').addEventListener('click', closeModal);
+document.getElementById('modalOverlay').addEventListener('click', closeModal);
+document.getElementById('saveTokenBtn').addEventListener('click', saveToken);
+document.getElementById('authTokenInput').addEventListener('keypress', e => { if (e.key === 'Enter') saveToken(); });
+document.getElementById('feedBtn').addEventListener('click', () => { if (typeof app !== 'undefined') app.triggerFeed(); });
+
+if (typeof app !== 'undefined' && !app.isInitialized) app.init();
+</script>
+</body>
+</html>

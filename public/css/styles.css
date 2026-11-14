@@ -1,0 +1,206 @@
+/* ========================================
+   Smart Aquaponics Dashboard - Custom Styles
+   ======================================== */
+
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.3);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========================================
+   Glassmorphism Effects
+   ======================================== */
+
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-sm);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --glass-bg: rgba(31, 41, 55, 0.7);
+        --glass-border: rgba(75, 85, 99, 0.3);
+    }
+}
+
+/* ========================================
+   Button Styles
+   ======================================== */
+
+.btn-primary {
+    @apply flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+    @apply flex items-center justify-center gap-2 px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium rounded-lg transition-all duration-200;
+}
+
+.btn-glass {
+    @apply transition-all duration-200 active:scale-95;
+}
+
+/* ========================================
+   Input Fields
+   ======================================== */
+
+.input-field {
+    @apply px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all;
+}
+
+/* ========================================
+   Connection Status Animations
+   ======================================== */
+
+.status-online .animate-ping {
+    animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+    background-color: rgb(34, 197, 94) !important;
+}
+
+.status-online span:last-child {
+    background-color: rgb(34, 197, 94) !important;
+}
+
+.status-offline .animate-ping {
+    background-color: rgb(239, 68, 68) !important;
+}
+
+.status-offline span:last-child {
+    background-color: rgb(239, 68, 68) !important;
+}
+
+/* ========================================
+   Badge Styles
+   ======================================== */
+
+.badge-wet {
+    @apply bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200;
+}
+
+.badge-dry {
+    @apply bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200;
+}
+
+/* ========================================
+   Loading States
+   ======================================== */
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.loading-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ========================================
+   Hover Effects
+   ======================================== */
+
+.hover-lift {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* ========================================
+   Scrollbar Styling
+   ======================================== */
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    @apply bg-gray-100 dark:bg-gray-800;
+}
+
+::-webkit-scrollbar-thumb {
+    @apply bg-gray-400 dark:bg-gray-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-500 dark:bg-gray-500;
+}
+
+/* ========================================
+   Responsive Utilities
+   ======================================== */
+
+@media (max-width: 768px) {
+    .glass-card {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
+}
+
+/* ========================================
+   Modal Transitions
+   ======================================== */
+
+.modal-enter {
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+.modal-enter-active {
+    opacity: 1;
+    transform: scale(1);
+    transition: opacity 200ms, transform 200ms;
+}
+
+.modal-exit {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.modal-exit-active {
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 150ms, transform 150ms;
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+
+@media print {
+    body {
+        background: white;
+    }
+    
+    .glass-card {
+        border: 1px solid #e5e7eb;
+        background: white;
+    }
+    
+    button, footer {
+        display: none;
+    }
+}

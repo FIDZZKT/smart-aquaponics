@@ -1,0 +1,35 @@
+{
+  "name": "smart-aquaponics-dashboard",
+  "version": "1.0.0",
+  "description": "Smart Aquaponics Web Dashboard - Real-time IoT monitoring system untuk aquaponik berbasis ESP32 dan Blynk Cloud",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server -p 8000 -c-1",
+    "dev": "npx http-server -p 8000 -c-1 -o",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [
+    "aquaponics",
+    "iot",
+    "esp32",
+    "blynk",
+    "dashboard",
+    "monitoring",
+    "real-time",
+    "sensors",
+    "agriculture",
+    "smart-farming"
+  ],
+  "author": "Smart Aquaponics Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/smart-aquaponics-dashboard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/smart-aquaponics-dashboard/issues"
+  },
+  "homepage": "https://github.com/yourusername/smart-aquaponics-dashboard#readme",
+  "devDependencies": {},
+  "dependencies": {}
+}
