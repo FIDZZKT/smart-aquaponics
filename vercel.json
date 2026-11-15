@@ -1,9 +1,12 @@
 {
   "version": 2,
-  "routes": [
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/$1" }
+  ],
+  "headers": [
     {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/aquaponics.jpeg",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000" }]
     }
   ]
 }
